@@ -23,7 +23,7 @@ bot.onText(/\/start(.*)/, (msg, match) => {
     const chatId = msg.chat.id;
     const plz = match[1] || 37073;
 
-    bot.sendMessage(chatId, "Du wirst benachrichtigt sobald ein Termin in PLZ-" + plz + " frei ist!\nMöchtest du die Stadt ändern, dann führe /start gefolgt von deiner Postleitzahl aus: \`\`\`\/start 12345`\`\`");
+    bot.sendMessage(chatId, "Du wirst benachrichtigt sobald ein Termin in PLZ-" + plz + " frei ist!\nMöchtest du die Stadt ändern, dann führe /start gefolgt von deiner Postleitzahl aus. Z.B.: /start 12345");
     registerUser(chatId, plz);
     saveNewUser(chatId, plz);
 });
