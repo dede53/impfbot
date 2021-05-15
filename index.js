@@ -29,7 +29,7 @@ bot.onText(/\/start(.*)/, (msg, match) => {
 });
 
 bot.onText(/\/stop(.*)/, (msg, match) => {
-    bot.sendMessage(msg.chat.id, "Du wirst nicht weiter benachrichtig!");
+    bot.sendMessage(msg.chat.id, "Du wirst nicht weiter benachrichtigt!");
     clearInterval(requests[msg.chat.id]);
     delete config[msg.chat.id];
     fs.writeFileSync(configFile, JSON.stringify(config));
@@ -43,10 +43,17 @@ function registerUser(chatId, plz) {
 }
 
 function checkAppointment(chatId, plz) {
-    axios.get("https://www.impfportal-niedersachsen.de/portal/rest/appointments/findVaccinationCenterListFree/" + plz).then(function (response) {
-        if (response.data.resultList[0].outOfStock == false) {
-            console.log(new Date().toLocaleString(), "Es ist ein Impftermin verfügbar!");
-            bot.sendMessage(chatId, "Es ist ein Impftermin verfügbar!");
+    const url = "https://www.impfportal-niedersachsen.de/portal/rest/appointments/findVaccinationCenterListFree/" + plz;
+    axios.get(url).then(function (response) {
+        let result = response.data.resultList[0];
+        if (result.outOfStock == false) {
+            let message = "Es ist ein Impftermin verfügbar!\n Es handelt sich um Impfstoff von " + result.vaccineName;
+            if(result.freeSlotSizeOnline > 1){
+                message = "Es sind " + result.freeSlotSizeOnline + " Impftermine verfügbar!\n Es handelt sich um Impfstoff von " + result.vaccineName;
+            }
+
+            console.log(new Date().toLocaleString(), message);
+            bot.sendMessage(chatId, message);
         } else {
             console.log(new Date().toLocaleString(), "Leider kein Termin verfügbar für ", chatId);
         }
