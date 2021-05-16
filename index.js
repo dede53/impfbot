@@ -60,17 +60,22 @@ function unregisterUser(chatId) {
 function checkAppointment(chatId, plz) {
     const url = "https://www.impfportal-niedersachsen.de/portal/rest/appointments/findVaccinationCenterListFree/" + plz;
     axios.get(url).then(function (response) {
-        let result = response.data.resultList[0];
-        if (result.outOfStock == false) {
-            let message = "In " + result.city + " ist ein Impftermin verfügbar!\nEs handelt sich um Impfstoff von " + result.vaccineName + ".\nDu wirst nicht weiter benachrichtigt. Sende /restart um wieder informiert zu werden.";
-            if (result.freeSlotSizeOnline > 1) {
-                message = "In " + result.city + " sind " + result.freeSlotSizeOnline + " Impftermine verfügbar!\nEs handelt sich um Impfstoff von " + result.vaccineName + ". \nDu wirst nicht weiter benachrichtigt. Sende /restart um wieder informiert zu werden.";
+        try {
+            let result = response.data.resultList[0];
+            if (result.outOfStock == false) {
+                let message = "In " + result.city + " ist ein Impftermin verfügbar!\nEs handelt sich um Impfstoff von " + result.vaccineName + ".\nDu wirst nicht weiter benachrichtigt. Sende /restart um wieder informiert zu werden.";
+                if (result.freeSlotSizeOnline > 1) {
+                    message = "In " + result.city + " sind " + result.freeSlotSizeOnline + " Impftermine verfügbar!\nEs handelt sich um Impfstoff von " + result.vaccineName + ". \nDu wirst nicht weiter benachrichtigt. Sende /restart um wieder informiert zu werden.";
+                }
+                console.log(new Date().toLocaleString(), message);
+                bot.sendMessage(chatId, message);
+                clearInterval(requests[chatId]);
+            } else {
+                console.log(new Date().toLocaleString(), "Leider kein Termin verfügbar für ", chatId);
             }
-            console.log(new Date().toLocaleString(), message);
-            bot.sendMessage(chatId, message);
-            clearInterval(requests[chatId]);
-        } else {
-            console.log(new Date().toLocaleString(), "Leider kein Termin verfügbar für ", chatId);
+        } catch(e){
+            console.log(e);
+            console.log(resonse.data);
         }
     }).catch((error) => {
         console.log(error);
