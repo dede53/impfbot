@@ -21,11 +21,15 @@ if (fs.existsSync(configFile)) {
 
 bot.onText(/\/start(.*)/, (msg, match) => {
     const chatId = msg.chat.id;
-    const plz = match[1] || 37073;
-
-    bot.sendMessage(chatId, "Du wirst benachrichtigt sobald ein Termin in PLZ-" + plz + " frei ist!\nMöchtest du die Stadt ändern, dann führe /start gefolgt von deiner Postleitzahl aus. Z.B.: /start 12345");
-    registerUser(chatId, plz);
-    saveNewUser(chatId, plz);
+    let plz = 37073;
+    try {
+        plz = parseInt(match[0]);
+        bot.sendMessage(chatId, "Du wirst benachrichtigt sobald ein Termin in PLZ-" + plz + " frei ist!\nMöchtest du die Stadt ändern, dann führe /start gefolgt von deiner Postleitzahl aus. Z.B.: /start 12345");
+        registerUser(chatId, plz);
+        saveNewUser(chatId, plz);
+    } catch(e) {
+        bot.sendMessage(chatId, "Das ist keine gültige Postleitzahl!\nRufe z.B.: /start 12345 auf.");
+    }
 });
 
 bot.onText(/\/stop(.*)/, (msg, match) => {
@@ -56,7 +60,7 @@ function unregisterUser(chatId) {
 }
 
 function checkAppointment(chatId, plz) {
-    const url = "https://www.impfportal-niedersachsen.de/portal/rest/appointments/findVaccinationCenterListFree/" + plz.trim();
+    const url = "https://www.impfportal-niedersachsen.de/portal/rest/appointments/findVaccinationCenterListFree/" + plz;
     axios.get(url).then(function (response) {
         let result = response.data.resultList[0];
         if (result.outOfStock == false) {
@@ -76,6 +80,6 @@ function checkAppointment(chatId, plz) {
 }
 
 function saveNewUser(chatId, plz) {
-    config[chatId] = plz.trim();
+    config[chatId] = plz;
     fs.writeFileSync(configFile, JSON.stringify(config));
 }
