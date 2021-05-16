@@ -21,15 +21,13 @@ if (fs.existsSync(configFile)) {
 
 bot.onText(/\/start(.*)/, (msg, match) => {
     const chatId = msg.chat.id;
-    let plz = 37073;
-        plz = parseInt(match[0]);
-        if(isNaN(plz)){
-            bot.sendMessage(chatId, "Das ist keine gültige Postleitzahl!\nRufe z.B.: /start 12345 auf.");
-            return;
-        }
-        bot.sendMessage(chatId, "Du wirst benachrichtigt sobald ein Termin in PLZ-" + plz + " frei ist!\nMöchtest du die Stadt ändern, dann führe /start gefolgt von deiner Postleitzahl aus. Z.B.: /start 12345");
-        registerUser(chatId, plz);
-        saveNewUser(chatId, plz);
+    let plz = parseInt(match[0]);
+    if (isNaN(plz)) {
+        plz = 37073;
+    }
+    bot.sendMessage(chatId, "Du wirst benachrichtigt sobald ein Termin in PLZ-" + plz + " frei ist!\nMöchtest du die Stadt ändern, dann führe /start gefolgt von deiner Postleitzahl aus. Z.B.: /start 12345");
+    registerUser(chatId, plz);
+    saveNewUser(chatId, plz);
 });
 
 bot.onText(/\/stop(.*)/, (msg, match) => {
