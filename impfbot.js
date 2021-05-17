@@ -19,9 +19,9 @@ if (fs.existsSync(configFile)) {
     fs.writeFileSync(configFile, "{}");
 }
 
-bot.onText(/\/start(.*)/, (msg, match) => {
+bot.onText(new RegExp(/\/start(.*)/), (msg, match) => {
     const chatId = msg.chat.id;
-    let plz = parseInt(match[0]);
+    let plz = parseInt(match[1].trim()) || 37073;
     if (isNaN(plz)) {
         plz = 37073;
     }
@@ -30,12 +30,13 @@ bot.onText(/\/start(.*)/, (msg, match) => {
     saveNewUser(chatId, plz);
 });
 
-bot.onText(/\/stop(.*)/, (msg, match) => {
-    bot.sendMessage(msg.chat.id, "Du wirst nicht weiter benachrichtigt!");
-    unregisterUser(msg.chat.id);
+bot.onText(new RegExp(/\/stop(.*)/), (msg, match) => {
+    const chatId = msg.chat.id;
+    unregisterUser(chatId);
+    bot.sendMessage(chatId, "Du wirst nicht weiter benachrichtigt!");
 });
 
-bot.onText(/\/restart(.*)/, (msg, match) => {
+bot.onText(new RegExp(/\/restart(.*)/), (msg, match) => {
     if (config[msg.chat.id]) {
         bot.sendMessage(msg.chat.id, "Du wirst wieder benachrichtigt!");
         registerUser(msg.chat.id, config[msg.chat.id]);
@@ -45,13 +46,16 @@ bot.onText(/\/restart(.*)/, (msg, match) => {
 });
 
 function registerUser(chatId, plz) {
+    log(chatId, "@", plz, "Start");
     checkAppointment(chatId, plz);
+    clearInterval(requests[chatId]);
     requests[chatId] = setInterval(function () {
         checkAppointment(chatId, plz);
     }, 30 * 1000);
 }
 
 function unregisterUser(chatId) {
+    log(chatId, "@", "Stop");
     clearInterval(requests[chatId]);
     delete config[chatId];
     fs.writeFileSync(configFile, JSON.stringify(config));
@@ -67,22 +71,26 @@ function checkAppointment(chatId, plz) {
                 if (result.freeSlotSizeOnline > 1) {
                     message = "In " + result.city + " sind " + result.freeSlotSizeOnline + " Impftermine verfügbar!\nEs handelt sich um Impfstoff von " + result.vaccineName + ". \nDu wirst nicht weiter benachrichtigt. Sende /restart um wieder informiert zu werden.";
                 }
-                console.log(new Date().toLocaleString(), message);
+                log(chatId, "@", plz, "verfügbar");
                 bot.sendMessage(chatId, message);
                 clearInterval(requests[chatId]);
             } else {
-                console.log(new Date().toLocaleString(), "Leider kein Termin verfügbar für ", chatId);
+                log(chatId, "@", plz, "nicht verfügbar");
             }
-        } catch(e){
-            console.log(e);
-            console.log(resonse.data);
+        } catch (e) {
+            log(e);
+            log(resonse.data);
         }
     }).catch((error) => {
-        console.log(error);
+        log(error);
     });
 }
 
 function saveNewUser(chatId, plz) {
     config[chatId] = plz;
     fs.writeFileSync(configFile, JSON.stringify(config));
+}
+
+function log(...msg) {
+    console.log(new Date().toLocaleString(), msg.toString().replace(/,/g, " "));
 }
